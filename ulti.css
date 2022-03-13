@@ -1,7 +1,9 @@
 #ulti-root {
     position: relative;
     border: 3px solid black;
+    box-sizing: border-box;
     background-color: green;
+    z-index: 0;
 }
 
 .ulti-goal-line {
@@ -9,10 +11,25 @@
     min-width: 3px;
     min-height: 3px;
     position: absolute;
+    z-index: 1;
 }
 
 .ulti-player {
     min-width: 10px;
     min-height: 10px;
     position: absolute;
+    transition: all .5s ease-in-out;
+    z-index: 2;
+}
+
+#ulti-disc {
+    background-color: lightskyblue;
+    border: 2px solid black;
+    box-sizing: border-box;
+    border-radius: 50%;
+    position: absolute;
+    min-width: 10px;
+    min-height: 10px;
+    transition: all .5s ease-in-out;
+    z-index: 999;
 }

@@ -19,7 +19,10 @@ class UltiBoard {
     this.rootElement.id = "ulti-root";
 
     this.players = [];
-    this.playerSize = 20;
+    this._playerSizePx = 20;
+    this._disc = new Disc(15, -15);
+    this._discDiameterPx = 20;
+    this._discShown = false;
 
     // Make the field have standard dimensions unless specified otherwise
     if (width && length) {
@@ -60,19 +63,19 @@ class UltiBoard {
     goalLine1.className = "ulti-goal-line";
     goalLine2.className = "ulti-goal-line";
 
-    goalLine1.style = `top: 17.5%; width: 100%`;
-    goalLine2.style = `top: 82%; width: 100%`;
+    if (this.vert) {
+      goalLine1.style = `top: 17.5%; width: 100%`;
+      goalLine2.style = `top: 82%; width: 100%`;
+    } else {
+      goalLine1.style = `left: 17.5%; height: 100%`;
+      goalLine2.style = `left: 82%; height: 100%`;
+    }
 
     this.rootElement.appendChild(goalLine1);
     this.rootElement.appendChild(goalLine2);
 
     body.appendChild(this.rootElement);
   }
-
-  // Returns a copy of the players array
-  getPlayers = () => {
-    return JSON.parse(JSON.stringify(this.players));
-  };
 
   /** Adds a player to the field. x and y denote the CENTER of the player's positon.
    *
@@ -104,16 +107,111 @@ class UltiBoard {
     this._addPlayerDOM(newPlayer);
   };
 
+  /**
+   * Keep only a set of players from the array.
+   * @param filter function to filter the players array on
+   */
+  filterPlayers = (filter) => {
+    if (this.debug) {
+      log('Filtering players');
+    }
+    this.players = this.players.filter(filter);
+    this._removeAllPlayersDOM();
+    this.players.map((player) => {
+      this._addPlayerDOM(player);
+    });
+  };
+
   _addPlayerDOM = (newPlayer) => {
     const player = document.createElement("img");
     player.className = "ulti-player";
     player.src = "static/X_black.svg";
-    player.style = `left: ${newPlayer.x - this.playerSize / 2}px; 
-                    top: ${newPlayer.y - this.playerSize / 2}px;
-                    width: ${this.playerSize}px;
-                    height: ${this.playerSize}px;`;
+    player.style = `left: ${newPlayer.x - this._playerSizePx / 2}px; 
+                    top: ${newPlayer.y - this._playerSizePx / 2}px;
+                    width: ${this._playerSizePx}px;
+                    height: ${this._playerSizePx}px;`;
 
     this.rootElement.appendChild(player);
+  };
+
+  _removeAllPlayersDOM = () => {
+    if (this.debug) {
+      log("Removed all players from DOM");
+    }
+    const players = this.rootElement.querySelectorAll(".ulti-player");
+    for (let i = 0; i < players.length; i++) {
+      this.rootElement.removeChild(players[i]);
+    }
+  };
+
+  showDisc = () => {
+    this._discShown = true;
+
+    this._addDiscDOM(...this._disc.coords());
+
+    if (this.debug) {
+      log("Show disc");
+    }
+  };
+
+  hideDisc = () => {
+    this._discShown = false;
+    this._removeDiscDOM();
+
+    if (this.debug) {
+      log("Hide disc");
+    }
+  };
+
+  getDiscPosition = () => {
+    return this._disc.x, this._disc.y;
+  };
+
+  setDiscPosition = (x, y) => {
+    if (this.debug) {
+      log(`Moving disc to (${x}, ${y})`);
+    }
+
+    this._disc.x = x;
+    this._disc.y = y;
+
+    if (this.showDisc) {
+      this._moveDiscDOM(...this._disc.coords());
+    }
+  };
+
+  getDiscOwner = () => {
+    return this._disc.owner;
+  };
+
+  setDiscOwner = (newOwner) => {
+    this._disc.owner = newOwner;
+    this.setDiscPosition(this._disc.x, this._disc.y);
+  };
+
+  _addDiscDOM = (x, y) => {
+    const disc = document.createElement("div");
+    disc.id = "ulti-disc";
+    disc.style = `left: ${x - this._discDiameterPx / 2}px; 
+                  top: ${y - this._discDiameterPx / 2}px;
+                  height: ${this._discDiameterPx}px; 
+                  width: ${this._discDiameterPx}px`;
+
+    this.rootElement.appendChild(disc);
+  };
+
+  /** Moves the disc to the specified coordinates. */
+  _moveDiscDOM(x, y) {
+    const disc = this.rootElement.querySelector("#ulti-disc");
+    disc.style = `left: ${x - this._discDiameterPx / 2}px; 
+                  top: ${y - this._discDiameterPx / 2}px;
+                  height: ${this._discDiameterPx}px; 
+                  width: ${this._discDiameterPx}px`;
+  }
+
+  _removeDiscDOM = () => {
+    const disc = this.rootElement.querySelector("#ulti-disc");
+    this.rootElement.removeChild(disc);
   };
 }
 
@@ -124,4 +222,27 @@ class Player {
     this.name = name;
     this.number = jerseyNumber;
   }
+}
+
+class Disc {
+  /** Defines a new Disc object.
+   * @param x     x-coordinate of the disc
+   * @param y     y-coordinate of the disc
+   * @param owner Player which is holding the disc
+   *
+   * If owner is defined, then x and y define the position of the disc relative
+   * to the position of the owner. Otherwise, they describe the position on the
+   * field (from the top left corner).
+   */
+  constructor(x, y, owner) {
+    this.x = x;
+    this.y = y;
+    this.owner = owner;
+  }
+
+  coords = () => {
+    return this.owner
+      ? [this.owner.x + this.x, this.owner.y + this.y]
+      : [this.x, this.y];
+  };
 }
