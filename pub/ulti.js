@@ -125,7 +125,7 @@ class UltiBoard {
   _addPlayerDOM = (newPlayer) => {
     const player = document.createElement("img");
     player.className = "ulti-player";
-    player.src = "static/X_black.svg";
+    player.src = "./X_black.svg";
     player.style = `left: ${newPlayer.x - this._playerSizePx / 2}px; 
                     top: ${newPlayer.y - this._playerSizePx / 2}px;
                     width: ${this._playerSizePx}px;
