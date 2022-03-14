@@ -20,8 +20,7 @@ class UltiBoard {
 
     this.players = [];
     this._playerSizePx = 20;
-    this._disc = new Disc(15, -15);
-    this._discDiameterPx = 20;
+    this._disc = new Disc(15, -15, 20);
     this._discShown = false;
 
     // Make the field have standard dimensions unless specified otherwise
@@ -74,6 +73,8 @@ class UltiBoard {
     this.rootElement.appendChild(goalLine1);
     this.rootElement.appendChild(goalLine2);
 
+    this._createDiscDOM(this._disc.x, this._disc.y);
+
     body.appendChild(this.rootElement);
   }
 
@@ -108,14 +109,12 @@ class UltiBoard {
   };
 
   /**
-   * Keep only a set of players from the array.
-   * @param filter function to filter the players array on
+   * Update the players in the DOM from the players array.
    */
-  filterPlayers = (filter) => {
+  updatePlayers = () => {
     if (this.debug) {
-      log('Filtering players');
+      log("Updating players");
     }
-    this.players = this.players.filter(filter);
     this._removeAllPlayersDOM();
     this.players.map((player) => {
       this._addPlayerDOM(player);
@@ -144,29 +143,46 @@ class UltiBoard {
     }
   };
 
+  /**
+   * Show the disc on the field.
+   */
   showDisc = () => {
     this._discShown = true;
 
-    this._addDiscDOM(...this._disc.coords());
+    const disc = this.rootElement.querySelector("#ulti-disc");
+    disc.style.display = "block";
 
     if (this.debug) {
       log("Show disc");
     }
   };
 
+  /**
+   * Hide the disc from the field.
+   */
   hideDisc = () => {
     this._discShown = false;
-    this._removeDiscDOM();
+    const disc = this.rootElement.querySelector("#ulti-disc");
+    disc.style.display = "none";
 
     if (this.debug) {
       log("Hide disc");
     }
   };
 
+  /**
+   * Get the Disc's current position.
+   * @returns an array containing the coordinates of the disc
+   * (relative to its owner, or the top left if there is no owner)
+   */
   getDiscPosition = () => {
-    return this._disc.x, this._disc.y;
+    return [this._disc.x, this._disc.y];
   };
 
+  /**
+   * Moves the disc to the specified coordinates (from the top left,
+   * or from the owner if applicable).
+   */
   setDiscPosition = (x, y) => {
     if (this.debug) {
       log(`Moving disc to (${x}, ${y})`);
@@ -175,43 +191,51 @@ class UltiBoard {
     this._disc.x = x;
     this._disc.y = y;
 
-    if (this.showDisc) {
-      this._moveDiscDOM(...this._disc.coords());
+    this._updateDiscDOM();
+  };
+
+  _updateDiscDOM = () => {
+    const disc = this.rootElement.querySelector("#ulti-disc");
+
+    if (this._disc.owner) {
+      disc.style.left = `${
+        this._disc.owner.x + this._disc.x - this._disc.size / 2
+      }px`;
+      disc.style.top = `${
+        this._disc.owner.y + this._disc.y - this._disc.size / 2
+      }px`;
+    } else {
+      disc.style.left = `${x - this._disc.size / 2}px`;
+      disc.style.top = `${y - this._disc.size / 2}px`;
     }
   };
 
+  /**
+   * @returns the Player who is currently holding the disc.
+   */
   getDiscOwner = () => {
     return this._disc.owner;
   };
 
+  /**
+   * Set the new owner of the disc.
+   * @param newOwner new Player which is now holding the disc.
+   */
   setDiscOwner = (newOwner) => {
     this._disc.owner = newOwner;
     this.setDiscPosition(this._disc.x, this._disc.y);
   };
 
-  _addDiscDOM = (x, y) => {
+  _createDiscDOM = (x, y) => {
     const disc = document.createElement("div");
     disc.id = "ulti-disc";
-    disc.style = `left: ${x - this._discDiameterPx / 2}px; 
-                  top: ${y - this._discDiameterPx / 2}px;
-                  height: ${this._discDiameterPx}px; 
-                  width: ${this._discDiameterPx}px`;
+    disc.style = `left: ${x - this._disc.size / 2}px; 
+                  top: ${y - this._disc.size / 2}px;
+                  height: ${this._disc.size}px; 
+                  width: ${this._disc.size}px;
+                  display: none`;
 
     this.rootElement.appendChild(disc);
-  };
-
-  /** Moves the disc to the specified coordinates. */
-  _moveDiscDOM(x, y) {
-    const disc = this.rootElement.querySelector("#ulti-disc");
-    disc.style = `left: ${x - this._discDiameterPx / 2}px; 
-                  top: ${y - this._discDiameterPx / 2}px;
-                  height: ${this._discDiameterPx}px; 
-                  width: ${this._discDiameterPx}px`;
-  }
-
-  _removeDiscDOM = () => {
-    const disc = this.rootElement.querySelector("#ulti-disc");
-    this.rootElement.removeChild(disc);
   };
 }
 
@@ -234,9 +258,10 @@ class Disc {
    * to the position of the owner. Otherwise, they describe the position on the
    * field (from the top left corner).
    */
-  constructor(x, y, owner) {
+  constructor(x, y, size, owner) {
     this.x = x;
     this.y = y;
+    this.size = size;
     this.owner = owner;
   }
 
