@@ -144,15 +144,15 @@ class UltiBoard {
   _handlePlayerMouseEnter = (event) => {
     const id = parseInt(event.target.id);
     const player = this.players.filter((player) => player.id === id)[0];
-    const tooltip = player.tooltip;
-    tooltip.style.opacity = 0.7;
+    if (player.number || player.name) {
+      player.tooltip.style.opacity = 0.7;
+    }
   };
 
   _handlePlayerMouseLeave = (event) => {
     const id = parseInt(event.target.id);
     const player = this.players.filter((player) => player.id === id)[0];
-    const tooltip = player.tooltip;
-    tooltip.style.opacity = 0;
+    player.tooltip.style.opacity = 0;
   };
 
   _removeAllPlayersDOM = () => {
@@ -256,16 +256,20 @@ class UltiBoard {
       const tooltip = document.createElement("div");
       tooltip.className = "ulti-tooltip";
 
-      const playerNum = document.createElement("span");
-      playerNum.className = "ulti-player-number";
-      playerNum.innerHTML = player.number ? `<b>#${player.number}</b>` : "";
+      if (player.number) {
+        const playerNum = document.createElement("span");
+        playerNum.className = "ulti-player-number";
+        playerNum.innerHTML = player.number ? `<b>#${player.number}</b>` : "";
+        playerNum.innerHTML += player.name ? " " : "";
+        tooltip.appendChild(playerNum);
+      }
 
-      const playerName = document.createElement("span");
-      playerName.className = "ulti-player-name";
-      playerName.innerText = player.name ? player.name : "";
-
-      tooltip.appendChild(playerNum);
-      tooltip.appendChild(playerName);
+      if (player.name) {
+        const playerName = document.createElement("span");
+        playerName.className = "ulti-player-name";
+        playerName.innerText = player.name;
+        tooltip.appendChild(playerName);
+      }
 
       this.rootElement.appendChild(tooltip);
 
@@ -285,10 +289,7 @@ class UltiBoard {
     }
     const tooltips = this.rootElement.querySelectorAll(".ulti-tooltip");
     for (let i = 0; i < tooltips.length; i++) {
-      tooltips[i].style.display = "block";
-      setTimeout(() => {
-        tooltips[i].style.opacity = 0.6;
-      }, 10);
+      tooltips[i].style.opacity = 0.7;
     }
   };
 
@@ -302,9 +303,6 @@ class UltiBoard {
     const tooltips = this.rootElement.querySelectorAll(".ulti-tooltip");
     for (let i = 0; i < tooltips.length; i++) {
       tooltips[i].style.opacity = 0;
-      setTimeout(() => {
-        tooltips[i].style.display = "none";
-      }, 500);
     }
   };
 }

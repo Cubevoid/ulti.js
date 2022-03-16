@@ -39,19 +39,19 @@
     min-height: 20px;
     background-color: rgba(211, 211, 211, 0.5);
     box-shadow: 5px 5px 10px black;
-    border-radius: 15%/100%;
+    border-radius: 10px;
     font-family: 'sans-serif';
-    padding: 4px;
+    padding: 4px 8px 4px 8px;
     position: absolute;
     transition: all .2s ease-in-out;
     opacity: 0;
     z-index: 999;
 }
 
-.ulti-player-number {
-    margin-left: 4px;
+/* .ulti-player-number {
+    margin: 4px;
 }
 
 .ulti-player-name {
-    margin: 4px;
-}
+    margin-right: 4px;
+} */
