@@ -20,8 +20,8 @@ class UltiBoard {
 
     this.players = [];
     this._playerSizePx = 20;
-    this._disc = new Disc(15, -15, 20);
-    this._discShown = false;
+    this.disc = new Disc(10, -10, 20);
+    this.discShown = false;
 
     // Make the field have standard dimensions unless specified otherwise
     if (width && length) {
@@ -70,10 +70,13 @@ class UltiBoard {
       goalLine2.style = `left: 82%; height: 100%`;
     }
 
+    this._playerId = 0;
+
     this.rootElement.appendChild(goalLine1);
     this.rootElement.appendChild(goalLine2);
 
-    this._createDiscDOM(this._disc.x, this._disc.y);
+    this._createDiscDOM(this.disc.x, this.disc.y);
+    this._createTooltipsDOM();
 
     body.appendChild(this.rootElement);
   }
@@ -103,7 +106,8 @@ class UltiBoard {
       log(`Adding new player at (${x}, ${y})`);
     }
 
-    const newPlayer = new Player(x, y, name, jerseyNumber);
+    const newPlayer = new Player(this._playerId, x, y, name, jerseyNumber);
+    this._playerId++;
     this.players.push(newPlayer);
     this._addPlayerDOM(newPlayer);
   };
@@ -124,6 +128,7 @@ class UltiBoard {
   _addPlayerDOM = (newPlayer) => {
     const player = document.createElement("img");
     player.className = "ulti-player";
+    player.id = `${newPlayer.id}-ulti-player`;
     player.src = "./X_black.svg";
     player.style = `left: ${newPlayer.x - this._playerSizePx / 2}px; 
                     top: ${newPlayer.y - this._playerSizePx / 2}px;
@@ -131,6 +136,23 @@ class UltiBoard {
                     height: ${this._playerSizePx}px;`;
 
     this.rootElement.appendChild(player);
+
+    player.addEventListener("mouseenter", this._handlePlayerMouseEnter);
+    player.addEventListener("mouseleave", this._handlePlayerMouseLeave);
+  };
+
+  _handlePlayerMouseEnter = (event) => {
+    const id = parseInt(event.target.id);
+    const player = this.players.filter((player) => player.id === id)[0];
+    const tooltip = player.tooltip;
+    tooltip.style.opacity = 0.7;
+  };
+
+  _handlePlayerMouseLeave = (event) => {
+    const id = parseInt(event.target.id);
+    const player = this.players.filter((player) => player.id === id)[0];
+    const tooltip = player.tooltip;
+    tooltip.style.opacity = 0;
   };
 
   _removeAllPlayersDOM = () => {
@@ -147,7 +169,7 @@ class UltiBoard {
    * Show the disc on the field.
    */
   showDisc = () => {
-    this._discShown = true;
+    this.discShown = true;
 
     const disc = this.rootElement.querySelector("#ulti-disc");
     disc.style.display = "block";
@@ -161,22 +183,13 @@ class UltiBoard {
    * Hide the disc from the field.
    */
   hideDisc = () => {
-    this._discShown = false;
+    this.discShown = false;
     const disc = this.rootElement.querySelector("#ulti-disc");
     disc.style.display = "none";
 
     if (this.debug) {
       log("Hide disc");
     }
-  };
-
-  /**
-   * Get the Disc's current position.
-   * @returns an array containing the coordinates of the disc
-   * (relative to its owner, or the top left if there is no owner)
-   */
-  getDiscPosition = () => {
-    return [this._disc.x, this._disc.y];
   };
 
   /**
@@ -188,8 +201,8 @@ class UltiBoard {
       log(`Moving disc to (${x}, ${y})`);
     }
 
-    this._disc.x = x;
-    this._disc.y = y;
+    this.disc.x = x;
+    this.disc.y = y;
 
     this._updateDiscDOM();
   };
@@ -197,16 +210,16 @@ class UltiBoard {
   _updateDiscDOM = () => {
     const disc = this.rootElement.querySelector("#ulti-disc");
 
-    if (this._disc.owner) {
+    if (this.disc.owner) {
       disc.style.left = `${
-        this._disc.owner.x + this._disc.x - this._disc.size / 2
+        this.disc.owner.x + this.disc.x - this.disc.size / 2
       }px`;
       disc.style.top = `${
-        this._disc.owner.y + this._disc.y - this._disc.size / 2
+        this.disc.owner.y + this.disc.y - this.disc.size / 2
       }px`;
     } else {
-      disc.style.left = `${x - this._disc.size / 2}px`;
-      disc.style.top = `${y - this._disc.size / 2}px`;
+      disc.style.left = `${x - this.disc.size / 2}px`;
+      disc.style.top = `${y - this.disc.size / 2}px`;
     }
   };
 
@@ -214,7 +227,7 @@ class UltiBoard {
    * @returns the Player who is currently holding the disc.
    */
   getDiscOwner = () => {
-    return this._disc.owner;
+    return this.disc.owner;
   };
 
   /**
@@ -222,25 +235,83 @@ class UltiBoard {
    * @param newOwner new Player which is now holding the disc.
    */
   setDiscOwner = (newOwner) => {
-    this._disc.owner = newOwner;
-    this.setDiscPosition(this._disc.x, this._disc.y);
+    this.disc.owner = newOwner;
+    this.setDiscPosition(this.disc.x, this.disc.y);
   };
 
   _createDiscDOM = (x, y) => {
     const disc = document.createElement("div");
     disc.id = "ulti-disc";
-    disc.style = `left: ${x - this._disc.size / 2}px; 
-                  top: ${y - this._disc.size / 2}px;
-                  height: ${this._disc.size}px; 
-                  width: ${this._disc.size}px;
+    disc.style = `left: ${x - this.disc.size / 2}px; 
+                  top: ${y - this.disc.size / 2}px;
+                  height: ${this.disc.size}px; 
+                  width: ${this.disc.size}px;
                   display: none`;
 
     this.rootElement.appendChild(disc);
   };
+
+  _createTooltipsDOM = () => {
+    this.players.map((player) => {
+      const tooltip = document.createElement("div");
+      tooltip.className = "ulti-tooltip";
+
+      const playerNum = document.createElement("span");
+      playerNum.className = "ulti-player-number";
+      playerNum.innerHTML = player.number ? `<b>#${player.number}</b>` : "";
+
+      const playerName = document.createElement("span");
+      playerName.className = "ulti-player-name";
+      playerName.innerText = player.name ? player.name : "";
+
+      tooltip.appendChild(playerNum);
+      tooltip.appendChild(playerName);
+
+      this.rootElement.appendChild(tooltip);
+
+      tooltip.style.left = `${player.x - tooltip.offsetWidth / 2}px`;
+      tooltip.style.top = `${player.y + tooltip.offsetHeight / 2}px`;
+
+      player.tooltip = tooltip;
+    });
+  };
+
+  /**
+   * Show player names and numbers in the form of a tooltip.
+   */
+  showNames = () => {
+    if (this.debug) {
+      log("Show player names");
+    }
+    const tooltips = this.rootElement.querySelectorAll(".ulti-tooltip");
+    for (let i = 0; i < tooltips.length; i++) {
+      tooltips[i].style.display = "block";
+      setTimeout(() => {
+        tooltips[i].style.opacity = 0.6;
+      }, 10);
+    }
+  };
+
+  /**
+   * Hide player names and numbers tooltips.
+   */
+  hideNames = () => {
+    if (this.debug) {
+      log("Hide player names");
+    }
+    const tooltips = this.rootElement.querySelectorAll(".ulti-tooltip");
+    for (let i = 0; i < tooltips.length; i++) {
+      tooltips[i].style.opacity = 0;
+      setTimeout(() => {
+        tooltips[i].style.display = "none";
+      }, 500);
+    }
+  };
 }
 
 class Player {
-  constructor(x, y, name, jerseyNumber) {
+  constructor(id, x, y, name, jerseyNumber) {
+    this.id = id;
     this.x = x;
     this.y = y;
     this.name = name;

@@ -19,3 +19,5 @@ ulti1.players[0].number = 23;
 ulti1.updatePlayers();
 
 ulti1.setDiscOwner(ulti1.players[0]);
+
+ulti1._createTooltipsDOM()
