@@ -82,15 +82,21 @@ class UltiBoard {
   }
 
   /** Adds a player to the field. x and y denote the CENTER of the player's positon.
-   *
-   * x and y denote pixels from the top-left, but can also be set to percentages.*/
-  addPlayer = (x, y, name, jerseyNumber) => {
+   *  @param x            x-coordinate in pixels or percent
+   *  @param y            y-coordinate in pixels or percent
+   *  @param name         player name
+   *  @param jerseyNumber player jersey number
+   *  @param type         one of 'offense', 'defense', 'handler'
+   *  @param rotation     degrees to rotate the player by (default is vertical)
+   *  @returns            the new player
+   */
+  addPlayer = (x, y, name, jerseyNumber, type = "offense", rotation = 0) => {
     if (typeof x === "string") {
       if (x.slice(-1) !== "%") {
         throw new Error(`Invalid x coordinate: ${x}`);
       } else {
         x = parseInt(x) / 100;
-        x = this.vert ? x * this.fieldWidth : x * this.fieldLength;
+        x *= this.vert ? this.fieldWidth : this.fieldLength;
       }
     }
     if (typeof y === "string") {
@@ -98,7 +104,7 @@ class UltiBoard {
         throw new Error(`Invalid y coordinate: ${y}`);
       } else {
         y = parseInt(y) / 100;
-        y = this.vert ? y * this.fieldLength : y * this.fieldWidth;
+        y *= this.vert ? this.fieldLength : this.fieldWidth;
       }
     }
 
@@ -106,10 +112,21 @@ class UltiBoard {
       log(`Adding new player at (${x}, ${y})`);
     }
 
-    const newPlayer = new Player(this._playerId, x, y, name, jerseyNumber);
+    const newPlayer = new Player(
+      this._playerId,
+      x,
+      y,
+      name,
+      jerseyNumber,
+      type,
+      rotation
+    );
     this._playerId++;
     this.players.push(newPlayer);
     this._addPlayerDOM(newPlayer);
+    this._createTooltipsDOM();
+
+    return newPlayer;
   };
 
   /**
@@ -123,17 +140,31 @@ class UltiBoard {
     this.players.map((player) => {
       this._addPlayerDOM(player);
     });
+    this._createTooltipsDOM();
   };
 
   _addPlayerDOM = (newPlayer) => {
     const player = document.createElement("img");
-    player.className = "ulti-player";
+    player.classList.add("ulti-player");
+
+    if (newPlayer.type === "offense" || newPlayer.type === "handler") {
+      player.src = "./X_black.svg";
+    } else if (newPlayer.type === "defense") {
+      player.src = "./line_black.svg";
+      player.style.rotate = `${newPlayer.rotation}deg`;
+    } else {
+      throw new Error(`Invalid player type: ${type}`);
+    }
+
     player.id = `${newPlayer.id}-ulti-player`;
-    player.src = "./X_black.svg";
     player.style = `left: ${newPlayer.x - this._playerSizePx / 2}px; 
                     top: ${newPlayer.y - this._playerSizePx / 2}px;
                     width: ${this._playerSizePx}px;
                     height: ${this._playerSizePx}px;`;
+
+    if (newPlayer.rotation) {
+      player.style.rotate = `${newPlayer.rotation}deg`;
+    }
 
     this.rootElement.appendChild(player);
 
@@ -142,17 +173,31 @@ class UltiBoard {
   };
 
   _handlePlayerMouseEnter = (event) => {
+    event.preventDefault();
     const id = parseInt(event.target.id);
     const player = this.players.filter((player) => player.id === id)[0];
     if (player.number || player.name) {
-      player.tooltip.style.opacity = 0.7;
+      // if (this.debug) {
+      //   log("Show tooltip");
+      // }
+      player.tooltip.style.display = "block";
+      setTimeout(() => {
+        player.tooltip.style.opacity = 0.7;
+      }, 0);
     }
   };
 
   _handlePlayerMouseLeave = (event) => {
+    event.preventDefault();
     const id = parseInt(event.target.id);
     const player = this.players.filter((player) => player.id === id)[0];
+    // if ((player.number || player.name) && this.debug) {
+    //   log("Hide tooltip");
+    // }
     player.tooltip.style.opacity = 0;
+    setTimeout(() => {
+      player.tooltip.style.display = "none";
+    }, 150);
   };
 
   _removeAllPlayersDOM = () => {
@@ -218,8 +263,8 @@ class UltiBoard {
         this.disc.owner.y + this.disc.y - this.disc.size / 2
       }px`;
     } else {
-      disc.style.left = `${x - this.disc.size / 2}px`;
-      disc.style.top = `${y - this.disc.size / 2}px`;
+      disc.style.left = `${this.disc.x - this.disc.size / 2}px`;
+      disc.style.top = `${this.disc.y - this.disc.size / 2}px`;
     }
   };
 
@@ -252,6 +297,13 @@ class UltiBoard {
   };
 
   _createTooltipsDOM = () => {
+    // First remove all existing tooltips
+    const tooltips = this.rootElement.querySelectorAll(".ulti-tooltip");
+    for (let i = 0; i < tooltips.length; i++) {
+      this.rootElement.removeChild(tooltips[i]);
+    }
+
+    // Make a tooltip for each player
     this.players.map((player) => {
       const tooltip = document.createElement("div");
       tooltip.className = "ulti-tooltip";
@@ -275,6 +327,7 @@ class UltiBoard {
 
       tooltip.style.left = `${player.x - tooltip.offsetWidth / 2}px`;
       tooltip.style.top = `${player.y + tooltip.offsetHeight / 2}px`;
+      tooltip.style.display = "none";
 
       player.tooltip = tooltip;
     });
@@ -289,7 +342,10 @@ class UltiBoard {
     }
     const tooltips = this.rootElement.querySelectorAll(".ulti-tooltip");
     for (let i = 0; i < tooltips.length; i++) {
-      tooltips[i].style.opacity = 0.7;
+      tooltips[i].style.display = "block";
+      setTimeout(() => {
+        tooltips[i].style.opacity = 0.7;
+      }, 10);
     }
   };
 
@@ -303,17 +359,97 @@ class UltiBoard {
     const tooltips = this.rootElement.querySelectorAll(".ulti-tooltip");
     for (let i = 0; i < tooltips.length; i++) {
       tooltips[i].style.opacity = 0;
+      setTimeout(() => {
+        tooltips[i].style.display = "none";
+      }, 500);
     }
+  };
+
+  /**
+   * Arrange players and disc into a Vertical Stack.
+   * @param defenders whether or not to add the opposite team playing defense.
+   */
+  vertStack = (defenders = false) => {
+    if (this.debug) {
+      log("Resetting field to Vertical Stack");
+    }
+
+    let handler;
+
+    if (this.vert) {
+      handler = this.addPlayer("50%", "70%", "Handler");
+      const dump = this.addPlayer("75%", "75%", "Dump");
+      if (defenders) {
+        this.addPlayer(
+          handler.x - this._playerSizePx / 2 - 5,
+          handler.y - this._playerSizePx / 2 - 5,
+          "Mark",
+          undefined,
+          "defense",
+          45
+        );
+        this.addPlayer(
+          dump.x - this._playerSizePx,
+          dump.y - this._playerSizePx / 2 - 5,
+          "Defense",
+          undefined,
+          "defense",
+          60
+        );
+      }
+
+      for (let i = 0; i < 5; i++) {
+        this.addPlayer("50%", `${55 - 5 * i}%`, "Stack");
+        if (defenders) {
+          this.addPlayer("55%", `${57 - 6 * i}%`, "Defense", undefined, "defense")
+        }
+      }
+
+    } else {
+      handler = this.addPlayer("70%", "50%", "Handler");
+      const dump = this.addPlayer("75%", "75%", "Dump");
+      if (defenders) {
+        this.addPlayer(
+          handler.x - this._playerSizePx / 2 - 5,
+          handler.y - this._playerSizePx / 2 - 5,
+          "Mark",
+          undefined,
+          "defense",
+          45
+        );
+        this.addPlayer(
+          dump.x - this._playerSizePx,
+          dump.y - this._playerSizePx / 2 - 5,
+          "Defense",
+          undefined,
+          "defense",
+          30
+        );
+      }
+
+      for (let i = 0; i < 5; i++) {
+        this.addPlayer(`${55 - 5 * i}%`, "50%", "Stack");
+        if (defenders) {
+          this.addPlayer(`${57 - 6 * i}%`, "55%", "Defense", undefined, "defense", 90)
+        }
+      }
+      this.setDiscPosition(-10, 10);
+    }
+
+    this.setDiscOwner(handler);
+    this.showDisc();
   };
 }
 
 class Player {
-  constructor(id, x, y, name, jerseyNumber) {
+  constructor(id, x, y, name, jerseyNumber, type, rotation) {
     this.id = id;
     this.x = x;
     this.y = y;
     this.name = name;
     this.number = jerseyNumber;
+    this.type = type;
+    this.rotation = rotation;
   }
 }
 
