@@ -81,6 +81,16 @@ class UltiBoard {
     body.appendChild(this.rootElement);
   }
 
+  /**
+   * Clears everything off the field, including players and the disc.
+   */
+  clear = () => {
+    this.players = [];
+    this.updatePlayers();
+    this.hideDisc();
+    this.setDiscOwner(undefined);
+  };
+
   /** Adds a player to the field. x and y denote the CENTER of the player's positon.
    *  @param x            x-coordinate in pixels or percent
    *  @param y            y-coordinate in pixels or percent
@@ -151,7 +161,6 @@ class UltiBoard {
       player.src = "./X_black.svg";
     } else if (newPlayer.type === "defense") {
       player.src = "./line_black.svg";
-      player.style.rotate = `${newPlayer.rotation}deg`;
     } else {
       throw new Error(`Invalid player type: ${type}`);
     }
@@ -163,7 +172,7 @@ class UltiBoard {
                     height: ${this._playerSizePx}px;`;
 
     if (newPlayer.rotation) {
-      player.style.rotate = `${newPlayer.rotation}deg`;
+      player.style.transform = `rotate(${newPlayer.rotation}deg)`;
     }
 
     this.rootElement.appendChild(player);
@@ -280,6 +289,9 @@ class UltiBoard {
    * @param newOwner new Player which is now holding the disc.
    */
   setDiscOwner = (newOwner) => {
+    if (this.debug) {
+      log("Setting new disc owner");
+    }
     this.disc.owner = newOwner;
     this.setDiscPosition(this.disc.x, this.disc.y);
   };
@@ -334,7 +346,7 @@ class UltiBoard {
   };
 
   /**
-   * Show player names and numbers in the form of a tooltip.
+   * Show all player names and numbers in the form of a tooltip.
    */
   showNames = () => {
     if (this.debug) {
@@ -347,10 +359,17 @@ class UltiBoard {
         tooltips[i].style.opacity = 0.7;
       }, 10);
     }
+
+    // Stop hover actions
+    const players = this.rootElement.querySelectorAll(".ulti-player");
+    for (let i = 0; i < players.length; i++) {
+      players[i].removeEventListener("mouseenter", this._handlePlayerMouseEnter);
+      players[i].removeEventListener("mouseleave", this._handlePlayerMouseLeave);
+    }
   };
 
   /**
-   * Hide player names and numbers tooltips.
+   * Hide all player names and numbers tooltips.
    */
   hideNames = () => {
     if (this.debug) {
@@ -362,6 +381,13 @@ class UltiBoard {
       setTimeout(() => {
         tooltips[i].style.display = "none";
       }, 500);
+    }
+
+    // Restore hover actions
+    const players = this.rootElement.querySelectorAll(".ulti-player");
+    for (let i = 0; i < players.length; i++) {
+      players[i].addEventListener("mouseenter", this._handlePlayerMouseEnter);
+      players[i].addEventListener("mouseleave", this._handlePlayerMouseLeave);
     }
   };
 
@@ -398,14 +424,21 @@ class UltiBoard {
         );
       }
 
+      // Stack
       for (let i = 0; i < 5; i++) {
-        this.addPlayer("50%", `${55 - 5 * i}%`, "Stack");
+        this.addPlayer("50%", `${56 - 5 * i}%`, "Stack");
         if (defenders) {
-          this.addPlayer("55%", `${57 - 6 * i}%`, "Defense", undefined, "defense")
+          this.addPlayer(
+            "57%",
+            `${58 - 6 * i}%`,
+            "Defense",
+            undefined,
+            "defense"
+          );
         }
       }
-
     } else {
+      // Horizontal field
       handler = this.addPlayer("70%", "50%", "Handler");
       const dump = this.addPlayer("75%", "75%", "Dump");
       if (defenders) {
@@ -427,10 +460,18 @@ class UltiBoard {
         );
       }
 
+      // Stack
       for (let i = 0; i < 5; i++) {
-        this.addPlayer(`${55 - 5 * i}%`, "50%", "Stack");
+        this.addPlayer(`${56 - 5 * i}%`, "50%", "Stack");
         if (defenders) {
-          this.addPlayer(`${57 - 6 * i}%`, "55%", "Defense", undefined, "defense", 90)
+          this.addPlayer(
+            `${58 - 6 * i}%`,
+            "57%",
+            "Defense",
+            undefined,
+            "defense",
+            90
+          );
         }
       }
       this.setDiscPosition(-10, 10);
