@@ -88,6 +88,7 @@ class UltiBoard {
     this.players = [];
     this.updatePlayers();
     this.hideDisc();
+    this.hideNames();
     this.setDiscOwner(undefined);
   };
 
@@ -275,13 +276,6 @@ class UltiBoard {
       disc.style.left = `${this.disc.x - this.disc.size / 2}px`;
       disc.style.top = `${this.disc.y - this.disc.size / 2}px`;
     }
-  };
-
-  /**
-   * @returns the Player who is currently holding the disc.
-   */
-  getDiscOwner = () => {
-    return this.disc.owner;
   };
 
   /**

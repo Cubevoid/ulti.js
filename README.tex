@@ -1,0 +1,145 @@
+\documentclass[letterpaper,11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{textcomp}
+\usepackage{hyperref}
+\usepackage{parskip}
+\usepackage{geometry}
+\geometry{letterpaper, portrait, margin=0.75in}
+
+\title{Ulti.js Alpha Release}
+\author{Colin De Vlieghere}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Description}
+The main purpose of this library is to
+help with visualizing and learning different team plays in the game of Ultimate Frisbee.
+Ulti.js will allow for viewing some common preset team configurations, such as the 
+``vertical stack'' or ``horizontal stack'', as well as any custom arrangement of players
+on both teams and the disc, by the developer or by the user.
+Some use cases for Ulti.js would be, for example, a coach using it in a ``whiteboard''
+style web app with annotations to teach players about the game interactively. Another use case 
+is someone writing a blog or lesson about the game, or as a reporting tool to show what happened 
+in a real game, for example on a news site.
+
+\paragraph{Implemented Features}
+Features that are currently implemented include creating a new board representing a field,
+vertical and horizontal field arrangements, the addition and removal of players, getting and setting a
+player's location, jersey number, name, and type (offense/defense), showing and hiding the
+disc, giving ownership of the disc to a player, and getting and setting the disc's position.
+There is also a preset for the ``Vert Stack'', a common offensive formation in the game.
+Finally, there are tooltips that show a player's name and jersey number that appear on hover,
+although they can also be manually toggled on and off.
+
+\paragraph{Deployed web page}
+\href{https://fathomless-tor-21034.herokuapp.com/examples.html}{https://fathomless-tor-21034.herokuapp.com/examples.html}
+
+There are three examples of the library's usage on the page.
+The first one shows a default horizontal field with one player and the disc moving to a different
+position after one second.
+The second one shows the Vert Stack preset with both offense and defense players. It also includes
+some buttons to manipulate the disc's visibility and owner.
+Finally, the last example shows an initially blank board, with a button that will populate the
+Vert Stack preset. There is also a button to clear the board and reset it to default.
+This example also includes buttons to show and hide player tooltips manually.
+
+\paragraph{JavaScript objects}
+There are three JS objects that are used in ulti.js. The first is the main \texttt{UltiBoard} class, and the
+other two are the \texttt{Player} and \texttt{Disc} objects that are stored within an \texttt{UltiBoard}.
+
+Here is an example of an instance of \texttt{UltiBoard}, not including its functions (which make up
+the library's main API):
+
+\begin{verbatim}
+  {
+    "debug": true,
+    "rootElement": <div id="ulti-root" style="width: 1100px; height: 400px;">,
+    "players": [
+      {
+      "id": 1,
+      "x": 550,
+      "y": 200,
+      "name": "Colin De Vlieghere",
+      "number": 23,
+      "type": "offense",
+      "rotation": 0,
+      "tooltip": <div class="ulti-tooltip">
+      }
+    ],
+    "_playerSizePx": 20,
+    "disc": {
+      "x": 50,
+      "y": 50,
+      "size": 20,
+      "owner": {
+        "id": 1,
+        "x": 550,
+        "y": 200,
+        "name": "Colin De Vlieghere",
+        "number": 23,
+        "type": "offense",
+        "rotation": 0,
+        "tooltip": <div class="ulti-tooltip">
+      }
+    },
+    "discShown": true,
+    "fieldWidth": 400,
+    "fieldLength": 1100,
+    "vert": false,
+    "_playerId": 2
+  }
+\end{verbatim}
+
+\begin{itemize}
+  \item In this example, the \texttt{debug} flag is set, meaning the code will have verbose outputs in the console.
+  \item \texttt{rootElement} is just there for convenience, and keeps a reference to the board in the DOM.
+  \item \texttt{players} is an array of \texttt{Player} objects, with coordinates, rotation, and type corresponding to 
+        the element in the DOM (corrected for the player's size, \texttt{\_playerSizePx}).
+        The Player object also has an id corresponding to the CSS id, and a reference to its tooltip in the DOM.
+  \item \texttt{disc} is an object representing the disc in the DOM. It too has coordinates and a size in pixels,
+        as well as an \texttt{owner} which is a reference to a Player object.
+  \item \texttt{discShown} is a flag representing whether or not the disc is shown in the DOM.
+  \item \texttt{fieldWidth} and \texttt{fieldLength} represent the dimensions of the field in the DOM (in pixels),
+        corrected for orientation (i.e. when the field is horizontal \texttt{fieldWidth} corresponds to CSS height
+        and \texttt{fieldLength} corresponds to CSS width).
+  \item \texttt{vert} is simply a flag describing the field's orientation (vertical or horizontal).
+\end{itemize}
+
+\newpage
+\paragraph{API Functions}
+In addition to the \texttt{constructor} for the \texttt{UltiBoard} class, here are the main API functions:
+
+\begin{itemize}
+  \item \texttt{clear()}: clears the board of players and the disc
+  \item \texttt{addPlayer(x, y, name, jerseyNumber, type, rotation)}: adds a new player onto the field
+  \item \texttt{updatePlayers()}: updates the players in the DOM from the \texttt{players} array 
+                                  (useful after removing or modifying a player)
+  \item \texttt{showDisc()}: shows the disc
+  \item \texttt{hideDisc()}: hides the disc
+  \item \texttt{setDiscPosition(x, y)}: sets the disc's position relative to its owner, or to the field if there is no owner
+  \item \texttt{setDiscOwner(newOwner)}: sets the disc's owner to a player
+  \item \texttt{showNames()}: manually shows the tooltips with player numbers and names
+  \item \texttt{hideNames()}: manually hides the tooltips with player numbers and names
+  \item \texttt{vertStack()}: Vertical Stack preset
+\end{itemize}
+
+\paragraph{Next Steps}
+I want to implement the Horizontal Stack preset next, as well as the ability for the user to drag and rotate 
+players and the disc around. The latter should be somewhat challenging, since it involves more complex mouse 
+actions and moving around several DOM elements. Also, in every function I create, I need to account for both
+the vertical and horizontal field orientations, which adds some complexity to the implementation.
+
+\end{document}

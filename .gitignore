@@ -1,4 +1,5 @@
 .vscode/
+*.synctex.gz
 
 # Logs
 logs
