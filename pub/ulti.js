@@ -75,7 +75,8 @@ class UltiBoard {
     this.rootElement.appendChild(goalLine1);
     this.rootElement.appendChild(goalLine2);
 
-    this._createDiscDOM(this.disc.x, this.disc.y);
+    const div = this._createDiscDOM(this.disc.x, this.disc.y);
+    div.addEventListener('mousedown', this.disc.onmousedown);
     this._createTooltipsDOM();
 
     body.appendChild(this.rootElement);
@@ -300,6 +301,7 @@ class UltiBoard {
                   display: none`;
 
     this.rootElement.appendChild(disc);
+    return disc;
   };
 
   _createTooltipsDOM = () => {
@@ -357,8 +359,14 @@ class UltiBoard {
     // Stop hover actions
     const players = this.rootElement.querySelectorAll(".ulti-player");
     for (let i = 0; i < players.length; i++) {
-      players[i].removeEventListener("mouseenter", this._handlePlayerMouseEnter);
-      players[i].removeEventListener("mouseleave", this._handlePlayerMouseLeave);
+      players[i].removeEventListener(
+        "mouseenter",
+        this._handlePlayerMouseEnter
+      );
+      players[i].removeEventListener(
+        "mouseleave",
+        this._handlePlayerMouseLeave
+      );
     }
   };
 
@@ -488,6 +496,8 @@ class Player {
   }
 }
 
+const clip = (num, min, max) => Math.max(Math.min(num, max), min);
+
 class Disc {
   /** Defines a new Disc object.
    * @param x     x-coordinate of the disc
@@ -503,6 +513,57 @@ class Disc {
     this.y = y;
     this.size = size;
     this.owner = owner;
+  }
+
+  // Adapted from https://plnkr.co/edit/vsRwWmKx1C6jIVue
+  onmousedown = (event) => {
+    const div = event.target;
+    const divBox = div.getBoundingClientRect();
+    const oldTransition = div.style.transition;
+    div.style.transition = "none";
+    const oldParent = div.parentNode;
+
+    let shiftX = event.clientX - divBox.left;
+    let shiftY = event.clientY - divBox.top;
+
+    const moveAt = (pageX, pageY) => {
+      let left = pageX - shiftX - oldParent.offsetLeft;
+      let top = pageY - shiftY - oldParent.offsetTop;
+      left = clip(left, 0, oldParent.offsetWidth - this.size);
+      top = clip(top, 0, oldParent.offsetHeight - this.size);
+
+      div.style.left = left + 'px';
+      div.style.top = top + 'px';
+      
+      if (this.owner) {
+        this.x = left - this.owner.x + this.size / 2;
+        this.y = top - this.owner.y + this.size / 2;
+      } else {
+        this.x = left + this.size / 2;
+        this.y = top + this.size / 2;
+      }
+    }
+
+    moveAt(event.pageX, event.pageY);
+    
+    const onmousemove = (event) => {
+      moveAt(event.pageX, event.pageY);
+      // https://stackoverflow.com/questions/29908261/prevent-text-selection-on-mouse-drag#29908832
+      if (document.selection) {
+        document.selection.empty()
+      } else {
+        window.getSelection().removeAllRanges()
+      }
+    }
+
+    const onmouseup = () => {
+      document.removeEventListener('mousemove', onmousemove);
+      document.removeEventListener('mouseup', onmouseup)
+      div.style.transition = oldTransition;
+    };
+
+    document.addEventListener('mousemove', onmousemove);
+    document.addEventListener('mouseup', onmouseup)
   }
 
   coords = () => {
