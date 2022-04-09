@@ -1,51 +1,60 @@
 #ulti-root {
-    position: relative;
-    border: 5px solid black;
-    /* box-sizing: border-box; */
-    background-color: green;
-    z-index: 0;
-    margin-top: 10px;
-    margin-bottom: 10px;
+  position: relative;
+  border: 5px solid black;
+  /* box-sizing: border-box; */
+  background-color: green;
+  z-index: 0;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .ulti-goal-line {
-    background-color: white;
-    min-width: 3px;
-    min-height: 3px;
-    position: absolute;
-    z-index: 1;
+  background-color: white;
+  min-width: 3px;
+  min-height: 3px;
+  position: absolute;
+  z-index: 1;
 }
 
 .ulti-player {
-    position: absolute;
-    transition: all .5s ease-in-out;
-    z-index: 2;
+  position: absolute;
+  transition: all 0.5s ease-in-out;
+  z-index: 2;
 }
 
 #ulti-disc {
-    background-color: red;
-    border: 2px solid black;
-    box-sizing: border-box;
-    border-radius: 50%;
-    position: absolute;
-    min-width: 10px;
-    min-height: 10px;
-    transition: all .5s ease-in-out;
-    z-index: 50;
+  background-color: red;
+  border: 2px solid black;
+  box-sizing: border-box;
+  border-radius: 50%;
+  position: absolute;
+  min-width: 10px;
+  min-height: 10px;
+  transition: all 0.5s ease-in-out;
+  z-index: 50;
 }
 
 .ulti-tooltip {
-    min-width: 5px;
-    min-height: 20px;
-    background-color: rgba(211, 211, 211, 0.5);
-    box-shadow: 5px 5px 10px black;
-    border-radius: 10px;
-    font-family: 'sans-serif';
-    padding: 4px 8px 4px 8px;
-    position: absolute;
-    transition: all .15s ease-in-out;
-    opacity: 0;
-    z-index: 999;
+  min-width: 5px;
+  min-height: 20px;
+  background-color: rgba(211, 211, 211, 0.5);
+  box-shadow: 5px 5px 10px black;
+  border-radius: 10px;
+  font-family: "sans-serif";
+  padding: 4px 8px 4px 8px;
+  position: absolute;
+  transition: all 0.15s ease-in-out;
+  opacity: 0;
+  z-index: 999;
+}
+
+img {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 
 /* .ulti-player-number {
