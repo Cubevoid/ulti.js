@@ -159,7 +159,9 @@ class UltiBoard {
     this._removeAllPlayersDOM();
     this.players.map((player) => {
       const div = this._addPlayerDOM(player);
-      div.addEventListener("mousedown", player.onmousedown);
+      if (this.enableDragging) {
+        div.addEventListener("mousedown", player.onmousedown);
+      }
     });
     this._createTooltipsDOM();
   };
