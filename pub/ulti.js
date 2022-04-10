@@ -7,12 +7,14 @@ log("===== Loaded ulti.js =====");
 // Returns an "Ulti" object with different methods
 class UltiBoard {
   // Creates and appends the DOM element for this Ulti visualization.
-  constructor(width, length, orientation = "vertical", debug = false) {
+  constructor(width, length, orientation = "vertical", enableDragging = true, debug = false) {
     this.debug = debug;
 
     if (this.debug) {
       log("New UltiBoard created");
     }
+
+    this.enableDragging = enableDragging;
 
     const body = document.querySelector("body");
     this.rootElement = document.createElement("div");
@@ -76,7 +78,9 @@ class UltiBoard {
     this.rootElement.appendChild(goalLine2);
 
     const div = this._createDiscDOM(this.disc.x, this.disc.y);
-    div.addEventListener("mousedown", this.disc.onmousedown);
+    if (this.enableDragging) {
+      div.addEventListener("mousedown", this.disc.onmousedown);
+    }
     this._createTooltipsDOM();
 
     body.appendChild(this.rootElement);
@@ -136,9 +140,11 @@ class UltiBoard {
     this._playerId++;
     this.players.push(newPlayer);
     const div = this._addPlayerDOM(newPlayer);
-    div.addEventListener("mousedown", newPlayer.onmousedown);
+    if (this.enableDragging) {
+      div.addEventListener("mousedown", newPlayer.onmousedown);
+      newPlayer.setUpdateCallbacks(this._updateDiscDOM, this._createTooltipsDOM);
+    }
     this._createTooltipsDOM();
-    newPlayer.setUpdateCallbacks(this._updateDiscDOM, this._createTooltipsDOM);
 
     return newPlayer;
   };

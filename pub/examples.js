@@ -6,7 +6,7 @@ title1.innerText =
   "One player, moving disc (hover over player (X) for name and jersey number)";
 body.appendChild(title1);
 
-const ulti1 = new UltiBoard(400, undefined, "h", true);
+const ulti1 = new UltiBoard(400, undefined, "h", true, true);
 ulti1.addPlayer(0, 0);
 ulti1.addPlayer("50%", "50%"); // middle of the field
 ulti1.players = ulti1.players.filter((player) => {
@@ -24,7 +24,7 @@ setTimeout(() => {
 
 
 const title2 = document.createElement("h3");
-title2.innerText = 'Vertical Field with custom dimensions, "Vert Stack" preset';
+title2.innerText = 'Vertical Field with custom dimensions, "Vert Stack" preset, no dragging';
 body.appendChild(title2);
 
 const showDiscButton = document.createElement("button");
@@ -41,7 +41,7 @@ body.appendChild(passDiscButton);
 body.appendChild(passDiscBackButton);
 
 // Vertical field
-const ulti2 = new UltiBoard(400, 600, "v", true);
+const ulti2 = new UltiBoard(400, 600, "v", false, true);
 ulti2.vertStack(true);
 
 const handler = ulti2.players.filter((player) => player.name === "Handler")[0]
@@ -66,7 +66,7 @@ body.appendChild(showNamesButton);
 const hideNamesButton = document.createElement("button");
 body.appendChild(hideNamesButton);
 
-const ulti3 = new UltiBoard(400, undefined, "h", true);
+const ulti3 = new UltiBoard(400, undefined, "h", true, true);
 
 vertButton.innerText = "Vert Stack preset";
 clearButton.innerText = "Clear field";

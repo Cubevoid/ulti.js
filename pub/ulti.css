@@ -18,8 +18,13 @@
 
 .ulti-player {
   position: absolute;
-  transition: all 0.5s ease-in-out;
+  transition: all 0.3s ease-in-out;
+  box-sizing: border-box;
   z-index: 2;
+}
+
+.ulti-player:hover {
+  border: 1px solid white;
 }
 
 #ulti-disc {
@@ -30,14 +35,18 @@
   position: absolute;
   min-width: 10px;
   min-height: 10px;
-  transition: all 0.5s ease-in-out;
+  transition: all 0.3s ease-in-out;
   z-index: 50;
+}
+
+#ulti-disc:hover {
+  border: 2px solid white;
 }
 
 .ulti-tooltip {
   min-width: 5px;
   min-height: 20px;
-  background-color: rgba(211, 211, 211, 0.5);
+  background-color: rgba(211, 211, 211, 0.7);
   box-shadow: 5px 5px 10px black;
   border-radius: 10px;
   font-family: "sans-serif";
@@ -56,11 +65,3 @@ img {
   -webkit-user-drag: none;
   -webkit-touch-callout: none;
 }
-
-/* .ulti-player-number {
-    margin: 4px;
-}
-
-.ulti-player-name {
-    margin-right: 4px;
-} */
