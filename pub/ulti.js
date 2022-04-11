@@ -51,8 +51,8 @@ log("===== Loaded ulti.js =====");
       } else if (length) {
         width = (length * 40) / 110;
       } else {
-        width = 200;
-        length = 550;
+        width = 400;
+        length = 1100;
       }
 
       this.#fieldWidth = width;

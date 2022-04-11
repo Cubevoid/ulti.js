@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ulti.js - Ultimate Visualizations - Documentation</title>
+    <script src="ulti.js"></script>
+    <link rel="stylesheet" type="text/css" href="ulti.css" />
+    <link rel="stylesheet" type="text/css" href="docs.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,300;0,400;1,300&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <h1><a href="/">Ulti.js</a> Documentation</h1>
+    <h2>Getting Started</h2>
+    First you must link the library and stylesheet in the &lt;head&gt; element.
+    <div class="code-wrapper">
+      <pre>
+&lt;script src=&quot;ulti.js&quot;&gt;&lt;/script&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;ulti.css&quot; /&gt;</pre
+      >
+    </div>
+
+    <h2>API Methods</h2>
+
+    <h3>
+      constructor(width, length, orientation = "vertical", enableDragging =
+      true, debug = false)
+    </h3>
+    To create a blank field, use the constructor of the UltiBoard object:
+    <div class="code-wrapper">
+      <pre>const ulti = new UltiBoard()</pre>
+    </div>
+    The constructor takes the following arguments:
+    <ol>
+      <li>width (in pixels)</li>
+      <li>length (in pixels)</li>
+      <li>orientation ("vertical" or "horizontal")</li>
+      <li>enableDragging (boolean)</li>
+      <li>debug (boolean)</li>
+    </ol>
+
+    <i>Note: the following methods are all performed on the UltiBoard object.</i>
+
+    <p>At any point, you can set the debug flag to enable or disable log messages in the browser console.</p>
+    <div class="code-wrapper">
+      <pre>ulti.debug = true</pre>
+    </div>
+
+    <h3>addPlayer(x, y, name, jerseyNumber, type = "offense", rotation = 0) => newPlayer</h3>
+    We can create a new player using the addPlayer method:
+    <div class="code-wrapper">
+      <pre>
+ulti.addPlayer(30, "50%", "Marques Brownlee", 13, "defense", 90)</pre
+      >
+    </div>
+    The addPlayer method takes the following arguments:
+    <ol>
+      <li>x (in pixels or as a percentage in the form of a string)</li>
+      <li>y (in pixels or as a percentage in the form of a string)</li>
+      <li>name (the player's name/label)</li>
+      <li>jerseyNumber (the player's jersey number)</li>
+      <li>type ("offense" or "defense")</li>
+      <li>rotation (in degrees)</li>
+    </ol>
+
+    The method returns the object representing the new player.
+
+    <h3>filterPlayers(filter)</h3>
+    Filters the players array based on a given filter callback.
+    <div class="code-wrapper">
+      <pre>
+ulti.filterPlayers((player) => {
+  return player.x !== 0
+})</pre
+      >
+    </div>
+
+    <h3>updatePlayers()</h3>
+    Updates the players in the DOM from the UltiBoard's players array.<br />
+    Use this after manually modifying the players array.
+    <div class="code-wrapper">
+      <pre>
+ulti.players[0].name = "Colin De Vlieghere"
+ulti.players[0].number = 23
+ulti.updatePlayers()</pre
+      >
+    </div>
+
+    <h3>showDisc()</h3>
+    Shows the disc on the field.
+
+    <h3>hideDisc()</h3>
+    Hides the disc.
+
+    <h3>setDiscOffset(x, y)</h3>
+    Moves the disc to the specified coordinates in pixels (from the top left of
+    the field, or from the disc's owner if applicable).
+    <div class="code-wrapper">
+      <pre>ulti.setDiscOffset(50, 200)</pre>
+    </div>
+
+    <h3>setDiscOwner(newOwner)</h3>
+    Sets the new owner of the disc, i.e. the player holding the disc.
+    <div class="code-wrapper">
+      <pre>ulti.setDiscOwner(ulti.players[0])</pre>
+    </div>
+    The players parameter should be a Player object.
+
+    <h3>showNames()</h3>
+    Force shows all player names and numbers in the form of tooltips.
+
+    <h3>hideNames()</h3>
+    Hide all player names and numbers tooltips. This is the default.
+
+    <h3>clear()</h3>
+    Removes all players and the disc from the field.
+
+    <h3>clearDrawings()</h3>
+    Removes all arrows/drawings from the field.
+
+    <h3>vertStack(defenders = false)</h3>
+    Sets the field to the Vertical Stack preset.
+    To show the defense players, set defenders to true.
+
+    <h3>hoStack(defenders = false)</h3>
+    Sets the field to the Horizontal Stack preset.
+    To show the defense players, set defenders to true.
+  </body>
+</html>
