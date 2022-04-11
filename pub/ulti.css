@@ -8,12 +8,51 @@
   margin-bottom: 10px;
 }
 
+#ulti-toggle-draw {
+  cursor: pointer;
+  position: absolute;
+  border: 3px solid black;
+  z-index: 999;
+  background-color: rgb(182, 141, 221);
+  right: 0px;
+  top: 0px;
+  margin: 2px;
+  height: 40px;
+  width: 40px;
+}
+
+/* #ulti-toggle-draw:hover {
+  background-color: rgb(159, 108, 207) !important;
+} */
+
+#ulti-clear-drawings {
+  cursor: pointer;
+  position: absolute;
+  border: 3px solid black;
+  z-index: 999;
+  background-color: red;
+  right: 0px;
+  top: 44px;
+  margin: 2px;
+  height: 40px;
+  width: 40px;
+}
+
+#ulti-clear-drawings:hover {
+  background-color: rgb(255, 84, 84);
+}
+
 .ulti-goal-line {
   background-color: white;
   min-width: 3px;
   min-height: 3px;
   position: absolute;
   z-index: 1;
+}
+
+#ulti-canvas {
+  position: absolute;
+  z-index: 2;
 }
 
 .ulti-player {
@@ -25,6 +64,7 @@
 
 .ulti-player:hover {
   border: 1px solid white;
+  cursor: grab;
 }
 
 #ulti-disc {
@@ -41,6 +81,7 @@
 
 #ulti-disc:hover {
   border: 2px solid white;
+  cursor: grab;
 }
 
 .ulti-tooltip {

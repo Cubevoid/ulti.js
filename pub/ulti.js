@@ -5,17 +5,21 @@ log("===== Loaded ulti.js =====");
 
 (function (global, document) {
   let playerId = 0;
+  let borderWidth;
 
   class UltiBoard {
     // Private variables
-    #playerSizePx;
+    #playerSizePx = 20;
     #rootElement;
-    #discShown;
+    #borderWidth;
+    #canvas;
+    #discShown = false;
     #disc;
     #enableDragging;
     #fieldWidth;
     #fieldLength;
-    #vert;
+    #isVerticalField;
+    #inDrawingMode = false;
 
     // Creates and appends the DOM element for this Ulti visualization.
     constructor(
@@ -38,9 +42,7 @@ log("===== Loaded ulti.js =====");
       this.#rootElement.id = "ulti-root";
 
       this.players = [];
-      this.#playerSizePx = 20;
       this.#disc = new Disc(10, -10, 20);
-      this.#discShown = false;
 
       // Make the field have standard dimensions unless specified otherwise
       if (width && length) {
@@ -61,18 +63,25 @@ log("===== Loaded ulti.js =====");
       }
 
       if (orientation[0] === "v") {
-        this.#vert = true;
+        this.#isVerticalField = true;
       } else if (orientation[0] === "h") {
-        this.#vert = false;
+        this.#isVerticalField = false;
       } else {
         throw new Error("invalid orientation");
       }
 
       if (this.debug) {
-        log(`Orientation: ${this.#vert ? "vertical" : "horizontal"}`);
+        log(
+          `Orientation: ${this.#isVerticalField ? "vertical" : "horizontal"}`
+        );
       }
 
-      this.#rootElement.style = this.#vert
+      body.appendChild(this.#rootElement);
+      borderWidth = parseInt(
+        getComputedStyle(this.#rootElement).getPropertyValue("border-width")
+      );
+
+      this.#rootElement.style = this.#isVerticalField
         ? `width: ${width}px; height: ${length}px`
         : `width: ${length}px; height: ${width}px`;
 
@@ -81,7 +90,7 @@ log("===== Loaded ulti.js =====");
       goalLine1.className = "ulti-goal-line";
       goalLine2.className = "ulti-goal-line";
 
-      if (this.#vert) {
+      if (this.#isVerticalField) {
         goalLine1.style = `top: 17.5%; width: 100%`;
         goalLine2.style = `top: 82%; width: 100%`;
       } else {
@@ -98,8 +107,124 @@ log("===== Loaded ulti.js =====");
       }
       this.#createTooltipsDOM();
 
-      body.appendChild(this.#rootElement);
+      const drawButton = document.createElement("button");
+      drawButton.onclick = this.#toggleDrawMode;
+      drawButton.id = "ulti-toggle-draw";
+      const drawButtonIcon = document.createElement("img");
+      drawButtonIcon.src = "./img/edit_white_24dp.svg";
+      drawButton.title = "Toggle drawing mode";
+      drawButton.appendChild(drawButtonIcon);
+      this.#rootElement.appendChild(drawButton);
+
+      const clearButton = document.createElement("button");
+      clearButton.onclick = this.#clearDrawings;
+      clearButton.id = "ulti-clear-drawings";
+      const clearButtonIcon = document.createElement("img");
+      clearButtonIcon.src = "./img/delete_white_24dp.svg";
+      clearButton.title = "Clear drawings";
+      clearButton.appendChild(clearButtonIcon);
+      this.#rootElement.appendChild(clearButton);
+
+      this.#canvas = document.createElement("canvas");
+      this.#canvas.id = "ulti-canvas";
+      this.#canvas.width = this.#rootElement.offsetWidth - 2 * borderWidth;
+      this.#canvas.height = this.#rootElement.offsetHeight - 2 * borderWidth;
+      this.#rootElement.appendChild(this.#canvas);
     }
+
+    /**
+     * Toggles Drawing Mode on/off
+     */
+    #toggleDrawMode = () => {
+      if (this.debug) {
+        log("Toggled drawing mode");
+      }
+      const drawButton = this.#rootElement.querySelector("#ulti-toggle-draw");
+      if (this.#inDrawingMode) {
+        this.#inDrawingMode = false;
+        drawButton.style.backgroundColor = "rgb(182, 141, 221)";
+        this.#canvas.style.cursor = "default";
+        this.#canvas.removeEventListener("mousedown", this.startDrawing);
+      } else {
+        this.#inDrawingMode = true;
+        drawButton.style.backgroundColor = "blueviolet";
+        this.#canvas.style.cursor = "crosshair";
+        this.#canvas.addEventListener("mousedown", this.startDrawing);
+      }
+    };
+
+    startDrawing = (event) => {
+      const fieldBox = this.#canvas.getBoundingClientRect();
+
+      let fromx = event.clientX - fieldBox.left;
+      let fromy = event.clientY - fieldBox.top;
+      let tox;
+      let toy;
+
+      const setTarget = (pageX, pageY) => {
+        tox = pageX - this.#rootElement.offsetLeft - borderWidth;
+        toy = pageY - this.#rootElement.offsetTop - borderWidth;
+      };
+
+      setTarget(event.pageX, event.pageY);
+
+      const onmousemove = (event) => {
+        setTarget(event.pageX, event.pageY);
+        // https://stackoverflow.com/questions/29908261/prevent-text-selection-on-mouse-drag#29908832
+        if (document.selection) {
+          document.selection.empty();
+        } else {
+          window.getSelection().removeAllRanges();
+        }
+      };
+
+      const onmouseup = () => {
+        document.removeEventListener("mousemove", onmousemove);
+        document.removeEventListener("mouseup", onmouseup);
+        this.#drawArrow(fromx, fromy, tox, toy);
+      };
+
+      document.addEventListener("mousemove", onmousemove);
+      document.addEventListener("mouseup", onmouseup);
+    };
+
+    // https://stackoverflow.com/a/6333775
+    #drawArrow(fromx, fromy, tox, toy) {
+      const context = this.#canvas.getContext("2d");
+
+      context.strokeStyle = "red";
+      context.lineWidth = 3;
+      context.lineCap = "round";
+      context.beginPath();
+      const headlen = 15; // length of head in pixels
+      const dx = tox - fromx;
+      const dy = toy - fromy;
+      const angle = Math.atan2(dy, dx);
+      context.moveTo(fromx, fromy);
+      context.lineTo(tox, toy);
+      context.moveTo(tox, toy);
+      context.lineTo(
+        tox - headlen * Math.cos(angle - Math.PI / 6),
+        toy - headlen * Math.sin(angle - Math.PI / 6)
+      );
+      context.moveTo(tox, toy);
+      context.lineTo(
+        tox - headlen * Math.cos(angle + Math.PI / 6),
+        toy - headlen * Math.sin(angle + Math.PI / 6)
+      );
+      context.stroke();
+    }
+
+    /**
+     * Clears drawings
+     */
+    #clearDrawings = () => {
+      if (this.debug) {
+        log("Clearing drawings");
+      }
+      const context = this.#canvas.getContext("2d");
+      context.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
+    };
 
     /**
      * Clears everything off the field, including players and the disc.
@@ -127,7 +252,7 @@ log("===== Loaded ulti.js =====");
           throw new Error(`Invalid x coordinate: ${x}`);
         } else {
           x = parseInt(x) / 100;
-          x *= this.#vert ? this.#fieldWidth : this.#fieldLength;
+          x *= this.#isVerticalField ? this.#fieldWidth : this.#fieldLength;
         }
       }
       if (typeof y === "string") {
@@ -135,7 +260,7 @@ log("===== Loaded ulti.js =====");
           throw new Error(`Invalid y coordinate: ${y}`);
         } else {
           y = parseInt(y) / 100;
-          y *= this.#vert ? this.#fieldLength : this.#fieldWidth;
+          y *= this.#isVerticalField ? this.#fieldLength : this.#fieldWidth;
         }
       }
 
@@ -174,7 +299,7 @@ log("===== Loaded ulti.js =====");
     filterPlayers = (filter) => {
       this.players = this.players.filter(filter);
       this.updatePlayers();
-    }
+    };
 
     /**
      * Update the players in the DOM from the players array.
@@ -198,9 +323,9 @@ log("===== Loaded ulti.js =====");
       player.classList.add("ulti-player");
 
       if (newPlayer.type === "offense" || newPlayer.type === "handler") {
-        player.src = "./X_black.svg";
+        player.src = "./img/X_black.svg";
       } else if (newPlayer.type === "defense") {
-        player.src = "./line_black.svg";
+        player.src = "./img/line_black.svg";
       } else {
         throw new Error(`Invalid player type: ${type}`);
       }
@@ -313,8 +438,16 @@ log("===== Loaded ulti.js =====");
         top += this.#disc.owner.y;
       }
 
-      left = clip(left, 0, this.#rootElement.offsetWidth - this.#disc.size);
-      top = clip(top, 0, this.#rootElement.offsetHeight - this.#disc.size);
+      left = clip(
+        left,
+        0,
+        this.#rootElement.offsetWidth - this.#disc.size - 2 * borderWidth
+      );
+      top = clip(
+        top,
+        0,
+        this.#rootElement.offsetHeight - this.#disc.size - 2 * borderWidth
+      );
 
       disc.style.left = left + "px";
       disc.style.top = top + "px";
@@ -448,7 +581,7 @@ log("===== Loaded ulti.js =====");
 
       let handler;
 
-      if (this.#vert) {
+      if (this.#isVerticalField) {
         handler = this.addPlayer("50%", "70%", "Handler");
         const dump = this.addPlayer("75%", "75%", "Dump");
         if (defenders) {
@@ -526,6 +659,121 @@ log("===== Loaded ulti.js =====");
       this.setDiscOwner(handler);
       this.showDisc();
     };
+
+    /**
+     * Arrange players and disc into a Horizontal Stack.
+     * @param defenders whether or not to add the opposite team playing defense.
+     */
+    hoStack = (defenders = false) => {
+      if (this.debug) {
+        log("Resetting field to Horizontal Stack");
+      }
+
+      let handler;
+
+      if (this.#isVerticalField) {
+        handler = this.addPlayer("50%", "75%", "Main Handler");
+        this.addPlayer("75%", "70%", "Handler");
+        this.addPlayer("25%", "70%", "Handler");
+
+        // Ho Stack
+        const stackDistance = "45%";
+        const wing1 = this.addPlayer("10%", stackDistance, "Wing");
+        this.addPlayer("30%", stackDistance, "Popper");
+        this.addPlayer("70%", stackDistance, "Popper");
+        const wing2 = this.addPlayer("90%", stackDistance, "Wing");
+
+        if (defenders) {
+          this.addPlayer(
+            handler.x + 20,
+            handler.y,
+            "Cup (Mark)",
+            null,
+            "defense",
+            0
+          );
+          this.addPlayer(
+            handler.x + 25,
+            handler.y - 35,
+            "Cup",
+            null,
+            "defense",
+            120
+          );
+          this.addPlayer(
+            handler.x - 30,
+            handler.y - 35,
+            "Cup",
+            null,
+            "defense",
+            60
+          );
+          this.addPlayer(
+            handler.x,
+            handler.y - 75,
+            "Mid-mid",
+            null,
+            "defense",
+            90
+          );
+          this.addPlayer(wing1.x, wing1.y - 20, "Wing", null, "defense", 90);
+          this.addPlayer(wing2.x, wing2.y - 20, "Wing", null, "defense", 90);
+        }
+      } else {
+        // Horizontal field
+        handler = this.addPlayer("75%", "50%", "Main Handler");
+        this.addPlayer("70%", "75%", "Handler");
+        this.addPlayer("70%", "25%", "Handler");
+
+        // Ho Stack
+        const stackDistance = "45%";
+        const wing1 = this.addPlayer(stackDistance, "10%", "Wing");
+        this.addPlayer(stackDistance, "30%", "Popper");
+        this.addPlayer(stackDistance, "70%", "Popper");
+        const wing2 = this.addPlayer(stackDistance, "90%", "Wing");
+
+        if (defenders) {
+          this.addPlayer(
+            handler.x,
+            handler.y + 20,
+            "Cup (Mark)",
+            null,
+            "defense",
+            90
+          );
+          this.addPlayer(
+            handler.x - 35,
+            handler.y + 25,
+            "Cup",
+            null,
+            "defense",
+            -30
+          );
+          this.addPlayer(
+            handler.x - 35,
+            handler.y - 30,
+            "Cup",
+            null,
+            "defense",
+            30
+          );
+          this.addPlayer(
+            handler.x - 75,
+            handler.y,
+            "Mid-mid",
+            null,
+            "defense",
+            0
+          );
+          this.addPlayer(wing1.x - 20, wing1.y, "Wing", null, "defense", 0);
+          this.addPlayer(wing2.x - 20, wing2.y, "Wing", null, "defense", 0);
+        }
+        this.setDiscOffset(-10, 10);
+      }
+
+      this.setDiscOwner(handler);
+      this.showDisc();
+    };
   }
 
   class Player {
@@ -562,8 +810,16 @@ log("===== Loaded ulti.js =====");
       const moveAt = (pageX, pageY) => {
         let left = pageX - shiftX - field.offsetLeft;
         let top = pageY - shiftY - field.offsetTop;
-        left = clip(left, 0, field.offsetWidth - div.offsetWidth);
-        top = clip(top, 0, field.offsetHeight - div.offsetHeight);
+        left = clip(
+          left,
+          0,
+          field.offsetWidth - div.offsetWidth - 2 * borderWidth
+        );
+        top = clip(
+          top,
+          0,
+          field.offsetHeight - div.offsetHeight - 2 * borderWidth
+        );
 
         div.style.left = left + "px";
         div.style.top = top + "px";
@@ -634,8 +890,8 @@ log("===== Loaded ulti.js =====");
       const moveAt = (pageX, pageY) => {
         let left = pageX - shiftX - field.offsetLeft;
         let top = pageY - shiftY - field.offsetTop;
-        left = clip(left, 0, field.offsetWidth - this.size);
-        top = clip(top, 0, field.offsetHeight - this.size);
+        left = clip(left, 0, field.offsetWidth - this.size - 2 * borderWidth);
+        top = clip(top, 0, field.offsetHeight - this.size - 2 * borderWidth);
 
         div.style.left = left + "px";
         div.style.top = top + "px";

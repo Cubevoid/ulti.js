@@ -28,7 +28,7 @@ function example1() {
 
 function example2() {
   const title2 = document.createElement("h3");
-  title2.innerText = 'Vertical Field with custom dimensions, "Vert Stack" preset, no dragging';
+  title2.innerText = 'Vertical Field with custom dimensions, "Ho Stack" preset, no dragging';
   body.appendChild(title2);
 
   const showDiscButton = document.createElement("button");
@@ -46,10 +46,10 @@ function example2() {
 
   // Vertical field
   const ulti2 = new UltiBoard(400, 600, "v", false, true);
-  ulti2.vertStack(true);
+  ulti2.hoStack(true);
 
-  const handler = ulti2.players.filter((player) => player.name === "Handler")[0]
-  const dump = ulti2.players.filter((player) => player.name === "Dump")[0]
+  const handler = ulti2.players.filter((player) => player.name === "Main Handler")[0]
+  const dump = ulti2.players.filter((player) => player.name === "Handler")[1]
 
   showDiscButton.addEventListener("click", (e) => ulti2.showDisc())
   hideDiscButton.addEventListener("click", (e) => ulti2.hideDisc())
