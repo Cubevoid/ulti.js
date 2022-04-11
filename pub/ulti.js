@@ -117,7 +117,7 @@ log("===== Loaded ulti.js =====");
       this.#rootElement.appendChild(drawButton);
 
       const clearButton = document.createElement("button");
-      clearButton.onclick = this.#clearDrawings;
+      clearButton.onclick = this.clearDrawings;
       clearButton.id = "ulti-clear-drawings";
       const clearButtonIcon = document.createElement("img");
       clearButtonIcon.src = "./img/delete_white_24dp.svg";
@@ -144,16 +144,16 @@ log("===== Loaded ulti.js =====");
         this.#inDrawingMode = false;
         drawButton.style.backgroundColor = "rgb(182, 141, 221)";
         this.#canvas.style.cursor = "default";
-        this.#canvas.removeEventListener("mousedown", this.startDrawing);
+        this.#canvas.removeEventListener("mousedown", this.#startDrawing);
       } else {
         this.#inDrawingMode = true;
         drawButton.style.backgroundColor = "blueviolet";
         this.#canvas.style.cursor = "crosshair";
-        this.#canvas.addEventListener("mousedown", this.startDrawing);
+        this.#canvas.addEventListener("mousedown", this.#startDrawing);
       }
     };
 
-    startDrawing = (event) => {
+    #startDrawing = (event) => {
       const fieldBox = this.#canvas.getBoundingClientRect();
 
       let fromx = event.clientX - fieldBox.left;
@@ -218,7 +218,7 @@ log("===== Loaded ulti.js =====");
     /**
      * Clears drawings
      */
-    #clearDrawings = () => {
+    clearDrawings = () => {
       if (this.debug) {
         log("Clearing drawings");
       }
@@ -230,6 +230,9 @@ log("===== Loaded ulti.js =====");
      * Clears everything off the field, including players and the disc.
      */
     clear = () => {
+      if (this.debug) {
+        log("Clear");
+      }
       this.players = [];
       this.updatePlayers();
       this.hideDisc();
@@ -578,7 +581,7 @@ log("===== Loaded ulti.js =====");
       if (this.debug) {
         log("Resetting field to Vertical Stack");
       }
-
+      this.clear();
       let handler;
 
       if (this.#isVerticalField) {
@@ -668,7 +671,7 @@ log("===== Loaded ulti.js =====");
       if (this.debug) {
         log("Resetting field to Horizontal Stack");
       }
-
+      this.clear();
       let handler;
 
       if (this.#isVerticalField) {
