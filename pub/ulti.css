@@ -51,7 +51,7 @@
 }
 
 #ulti-canvas {
-  position: absolute;
+  position: relative;
   z-index: 2;
 }
 
@@ -90,7 +90,6 @@
   background-color: rgba(211, 211, 211, 0.7);
   box-shadow: 5px 5px 10px black;
   border-radius: 10px;
-  font-family: "sans-serif";
   padding: 4px 8px 4px 8px;
   position: absolute;
   transition: all 0.15s ease-in-out;

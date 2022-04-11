@@ -105,8 +105,7 @@ log("===== Loaded ulti.js =====");
       if (this.#enableDragging) {
         div.addEventListener("mousedown", this.#disc.onmousedown);
       }
-      this.#createTooltipsDOM();
-
+      
       const drawButton = document.createElement("button");
       drawButton.onclick = this.#toggleDrawMode;
       drawButton.id = "ulti-toggle-draw";
@@ -130,6 +129,8 @@ log("===== Loaded ulti.js =====");
       this.#canvas.width = this.#rootElement.offsetWidth - 2 * borderWidth;
       this.#canvas.height = this.#rootElement.offsetHeight - 2 * borderWidth;
       this.#rootElement.appendChild(this.#canvas);
+      
+      this.#createTooltipsDOM();
     }
 
     /**
